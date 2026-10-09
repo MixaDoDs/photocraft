@@ -26,7 +26,7 @@ use sctk::subcompositor::SubcompositorState;
 use crate::platform_impl::wayland::event_loop::sink::EventSink;
 use crate::platform_impl::wayland::output::MonitorHandle;
 use crate::platform_impl::wayland::seat::{
-    PointerConstraintsState, RelativePointerState, TextInputState, WinitPointerData,
+    DndState, PointerConstraintsState, RelativePointerState, TextInputState, WinitPointerData,
     WinitPointerDataExt, WinitSeatState,
 };
 use crate::platform_impl::wayland::types::kwin_blur::KWinBlurManager;
@@ -109,6 +109,12 @@ pub struct WinitState {
     /// KWin blur manager.
     pub kwin_blur_manager: Option<KWinBlurManager>,
 
+    /// Data device manager, for drag and drop.
+    pub data_device_manager: Option<sctk::data_device_manager::DataDeviceManagerState>,
+
+    /// The drag and drop currently over one of our windows.
+    pub dnd: Option<DndState>,
+
     /// Loop handle to re-register event sources, such as keyboard repeat.
     pub loop_handle: LoopHandle<'static, Self>,
 
@@ -188,6 +194,12 @@ impl WinitState {
             pointer_surfaces: Default::default(),
 
             monitors: Arc::new(Mutex::new(monitors)),
+            data_device_manager: sctk::data_device_manager::DataDeviceManagerState::bind(
+                globals,
+                queue_handle,
+            )
+            .ok(),
+            dnd: None,
             events_sink: EventSink::new(),
             loop_handle,
             // Make it true by default.
@@ -433,3 +445,4 @@ sctk::delegate_registry!(WinitState);
 sctk::delegate_shm!(WinitState);
 sctk::delegate_xdg_shell!(WinitState);
 sctk::delegate_xdg_window!(WinitState);
+sctk::delegate_data_device!(WinitState);

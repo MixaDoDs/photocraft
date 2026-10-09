@@ -338,6 +338,8 @@ fn main() -> eframe::Result {
             #[cfg(target_os = "linux")]
             {
                 services.is_wayland = display == Some(tablet::DisplayKind::Wayland);
+                // patches/winit receives Wayland file drops.
+                services.wayland_drops = true;
                 if services.is_wayland {
                     let var = |name| std::env::var(name).ok();
                     services.xwayland_command =

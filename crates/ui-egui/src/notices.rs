@@ -65,6 +65,7 @@ pub(crate) fn paste_hint(app: &PhotocraftApp) -> String {
 /// command that starts this install under XWayland (where drops work), when there is one.
 pub fn wayland_file_drop_guidance(app: &mut PhotocraftApp) {
     if !app.services.is_wayland
+        || app.services.wayland_drops
         || app.session.prefs().dialogs.get(WAYLAND_FILE_DROP_DISMISSED).and_then(serde_json::Value::as_bool) == Some(true)
         || app.ui.notices.iter().any(|notice| notice.dismiss_pref.as_deref() == Some(WAYLAND_FILE_DROP_DISMISSED))
     {
@@ -208,6 +209,13 @@ mod tests {
         assert_eq!(crate::i18n::tr(es, &notice.title), "El arrastrar y soltar archivos de forma nativa no está disponible en Wayland");
         assert_ne!(crate::i18n::tr(es, &notice.lines[0]), notice.lines[0]);
         assert_eq!(crate::i18n::tr(crate::i18n::Lang::EN, &notice.title), "Native file drag-and-drop is unavailable");
+    }
+
+    #[test]
+    fn no_wayland_guidance_when_drops_arrive_on_wayland() {
+        let command = Some("WAYLAND_DISPLAY= photocraft".to_string());
+        let app = PhotocraftApp::new(Session::new(), Services { is_wayland: true, wayland_drops: true, xwayland_command: command, ..Default::default() });
+        assert!(app.ui.notices.is_empty());
     }
 
     /// A notice's lines in English with their arguments filled in.
